@@ -33,7 +33,6 @@
 #include "client/command.h"
 #include "client/properties.h"
 
-#define IWD_SERVICE		"net.connman.iwd"
 #define IWD_ROOT_PATH		"/"
 
 struct proxy_interface {
@@ -46,6 +45,7 @@ static struct l_dbus *dbus;
 
 static struct l_queue *proxy_interfaces;
 static struct l_queue *proxy_interface_types;
+static const char *iwd_service;
 
 void proxy_properties_display(const struct proxy_interface *proxy,
 				const char *caption, const char *margin,
@@ -351,7 +351,7 @@ bool proxy_property_set(const struct proxy_interface *proxy, const char *name,
 	if (!property->append)
 		return false;
 
-	msg = l_dbus_message_new_method_call(dbus, IWD_SERVICE, proxy->path,
+	msg = l_dbus_message_new_method_call(dbus, iwd_service, proxy->path,
 						L_DBUS_INTERFACE_PROPERTIES,
 						"Set");
 	if (!msg)
@@ -407,7 +407,13 @@ static bool interface_match_by_type_name(const void *a, const void *b)
 	const struct proxy_interface_type *type = a;
 	const char *interface = b;
 
-	return !strcmp(type->interface, interface);
+	size_t iwd_service_length = strlen(iwd_service);
+	// Check service part:
+	if(strncmp(type->interface, iwd_service, iwd_service_length))
+		return false;
+
+	// Check interface part:
+	return !strcmp(type->interface + iwd_service_length, interface);
 }
 
 struct proxy_interface *proxy_interface_find(const char *interface,
@@ -422,7 +428,7 @@ struct proxy_interface *proxy_interface_find(const char *interface,
 							entry = entry->next) {
 		struct proxy_interface *proxy = entry->data;
 
-		if (strcmp(proxy->path, path))
+		if (!interface_match_by_type_name(proxy->type, interface))
 			continue;
 
 		if (strcmp(proxy->type->interface, interface))
@@ -612,7 +618,7 @@ bool proxy_interface_method_call(const struct proxy_interface *proxy,
 	if (!proxy || !name)
 		return false;
 
-	call = l_dbus_message_new_method_call(dbus, IWD_SERVICE, proxy->path,
+	call = l_dbus_message_new_method_call(dbus, iwd_service, proxy->path,
 						 proxy->type->interface, name);
 
 	va_start(args, callback);
@@ -769,7 +775,7 @@ error:
 
 static void get_managed_objects(void)
 {
-	l_dbus_method_call(dbus, IWD_SERVICE, IWD_ROOT_PATH,
+	l_dbus_method_call(dbus, iwd_service, IWD_ROOT_PATH,
 					L_DBUS_INTERFACE_OBJECT_MANAGER,
 					"GetManagedObjects", NULL,
 					get_managed_objects_callback,
@@ -778,17 +784,17 @@ static void get_managed_objects(void)
 
 static void service_appeared_callback(struct l_dbus *dbus, void *user_data)
 {
-	l_dbus_add_signal_watch(dbus, IWD_SERVICE, IWD_ROOT_PATH,
+	l_dbus_add_signal_watch(dbus, iwd_service, IWD_ROOT_PATH,
 					L_DBUS_INTERFACE_OBJECT_MANAGER,
 					"InterfacesAdded", L_DBUS_MATCH_NONE,
 					interfaces_added_callback, NULL);
 
-	l_dbus_add_signal_watch(dbus, IWD_SERVICE, IWD_ROOT_PATH,
+	l_dbus_add_signal_watch(dbus, iwd_service, IWD_ROOT_PATH,
 					L_DBUS_INTERFACE_OBJECT_MANAGER,
 					"InterfacesRemoved", L_DBUS_MATCH_NONE,
 					interfaces_removed_callback, NULL);
 
-	l_dbus_add_signal_watch(dbus, IWD_SERVICE, NULL,
+	l_dbus_add_signal_watch(dbus, iwd_service, NULL,
 					L_DBUS_INTERFACE_PROPERTIES,
 					"PropertiesChanged", L_DBUS_MATCH_NONE,
 					properties_changed_callback, NULL);
@@ -861,8 +867,11 @@ bool dbus_proxy_init(void)
 	l_dbus_set_disconnect_handler(dbus, dbus_disconnect_callback, NULL,
 									NULL);
 
+	if(!command_option_get("dbus-name", &iwd_service))
+		iwd_service = "net.connman.iwd";
+
 	if (command_is_interactive_mode())
-		l_dbus_add_service_watch(dbus, IWD_SERVICE,
+		l_dbus_add_service_watch(dbus, iwd_service,
 						service_appeared_callback,
 						service_disappeared_callback,
 						NULL, NULL);

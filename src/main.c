@@ -63,6 +63,7 @@ static const char *nointerfaces;
 static const char *phys;
 static const char *nophys;
 static const char *debugopt;
+static const char *dbusname;
 static bool developeropt;
 static bool terminating;
 static bool nl80211_complete;
@@ -154,6 +155,7 @@ static void usage(void)
 		"\t-P, --nophys           Phys to ignore\n"
 		"\t-d, --debug            Enable debug output\n"
 		"\t-v, --version          Show version\n"
+		"\t-n, --dbus-name        D-Bus name to register as\n"
 		"\t-h, --help             Show help options\n");
 }
 
@@ -165,6 +167,7 @@ static const struct option main_options[] = {
 	{ "phys",         required_argument, NULL, 'p' },
 	{ "nophys",       required_argument, NULL, 'P' },
 	{ "debug",        optional_argument, NULL, 'd' },
+	{ "dbus-name",    required_argument, NULL, 'n' },
 	{ "help",         no_argument,       NULL, 'h' },
 	{ }
 };
@@ -245,8 +248,11 @@ static void iwd_setup_deamon_interface(struct l_dbus_interface *interface)
 static void dbus_ready(void *user_data)
 {
 	struct l_dbus *dbus = user_data;
+	const char *name = "net.connman.iwd";
+	if(dbusname)
+		name = dbusname;
 
-	l_dbus_name_acquire(dbus, "net.connman.iwd", false, false, false,
+	l_dbus_name_acquire(dbus, name, false, false, false,
 				request_name_callback, NULL);
 
 	l_dbus_register_interface(dbus, IWD_DAEMON_INTERFACE,
@@ -474,7 +480,7 @@ int main(int argc, char *argv[])
 	for (;;) {
 		int opt;
 
-		opt = getopt_long(argc, argv, "Ei:I:p:P:d::vh",
+		opt = getopt_long(argc, argv, "Ei:I:p:P:d::vn:h",
 							main_options, NULL);
 		if (opt < 0)
 			break;
@@ -506,6 +512,9 @@ int main(int argc, char *argv[])
 		case 'v':
 			printf("%s\n", VERSION);
 			return EXIT_SUCCESS;
+		case 'n':
+			dbusname = optarg;
+			break;
 		case 'h':
 			usage();
 			return EXIT_SUCCESS;

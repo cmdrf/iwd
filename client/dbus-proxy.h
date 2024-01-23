@@ -25,22 +25,21 @@
 
 struct proxy_interface;
 
-#define IWD_ADAPTER_INTERFACE            "net.connman.iwd.Adapter"
-#define IWD_ACCESS_POINT_INTERFACE       "net.connman.iwd.AccessPoint"
-#define IWD_AD_HOC_INTERFACE             "net.connman.iwd.AdHoc"
-#define IWD_AGENT_MANAGER_INTERFACE      "net.connman.iwd.AgentManager"
-#define IWD_DEVICE_INTERFACE             "net.connman.iwd.Device"
-#define IWD_KNOWN_NETWORK_INTREFACE      "net.connman.iwd.KnownNetwork"
-#define IWD_NETWORK_INTERFACE            "net.connman.iwd.Network"
-#define IWD_WSC_INTERFACE                "net.connman.iwd.SimpleConfiguration"
-#define IWD_STATION_INTERFACE            "net.connman.iwd.Station"
-#define IWD_STATION_DIAGNOSTIC_INTERFACE "net.connman.iwd.StationDiagnostic"
-#define IWD_STATION_DEBUG_INTERFACE      "net.connman.iwd.StationDebug"
-#define IWD_AP_DIAGNOSTIC_INTERFACE      "net.connman.iwd.AccessPointDiagnostic"
-#define IWD_DAEMON_INTERFACE             "net.connman.iwd.Daemon"
-#define IWD_DPP_INTERFACE                "net.connman.iwd.DeviceProvisioning"
-#define IWD_DPP_PKEX_INTERFACE \
-				"net.connman.iwd.SharedCodeDeviceProvisioning"
+#define IWD_ADAPTER_INTERFACE            ".Adapter"
+#define IWD_ACCESS_POINT_INTERFACE       ".AccessPoint"
+#define IWD_AD_HOC_INTERFACE             ".AdHoc"
+#define IWD_AGENT_MANAGER_INTERFACE      ".AgentManager"
+#define IWD_DEVICE_INTERFACE             ".Device"
+#define IWD_KNOWN_NETWORK_INTREFACE      ".KnownNetwork"
+#define IWD_NETWORK_INTERFACE            ".Network"
+#define IWD_WSC_INTERFACE                ".SimpleConfiguration"
+#define IWD_STATION_INTERFACE            ".Station"
+#define IWD_STATION_DIAGNOSTIC_INTERFACE ".StationDiagnostic"
+#define IWD_STATION_DEBUG_INTERFACE      ".StationDebug"
+#define IWD_AP_DIAGNOSTIC_INTERFACE      ".AccessPointDiagnostic"
+#define IWD_DAEMON_INTERFACE             ".Daemon"
+#define IWD_DPP_INTERFACE                ".DeviceProvisioning"
+#define IWD_DPP_PKEX_INTERFACE           ".SharedCodeDeviceProvisioning"
 
 typedef bool (*proxy_property_match_func_t) (const void *a, const void *b);
 
